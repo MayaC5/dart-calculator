@@ -337,7 +337,7 @@ export default function ZeroOneGames() {
               {inputMode === "board" && (
                 <div className="grid grid-cols-3 gap-2">
                   {BOARD_NUMBERS.map((n) => (
-                    <div key={n} className="border p-1 text-center">
+                    <div key={n} className="border py-2 px-1 text-center">
                       <div>{n}</div>
                       <div className="flex gap-1 justify-between">
                         <Button className='bg-blue-500'onClick={() => handleBoardHit(n, 1)}>S</Button>
