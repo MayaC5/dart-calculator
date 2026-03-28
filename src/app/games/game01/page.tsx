@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 const BOARD_NUMBERS = [
@@ -46,7 +47,7 @@ export default function ZeroOneGames() {
   const [gameStarted, setGameStarted] = useState<boolean>(false);
   const [gameEnded, setGameEnded] = useState<boolean>(false);
 
-  const [roundLimit, setRoundLimit] = useState<number>(10);
+  const [roundLimit, setRoundLimit] = useState<number>(15);
   const [currentRound, setCurrentRound] = useState<number>(1);
 
   const [inputMode, setInputMode] = useState<"buttons" | "board">("buttons");
@@ -192,45 +193,79 @@ export default function ZeroOneGames() {
       <h1 className="text-xl font-bold">01 Games 🎯</h1>
 
       {/* Game Type */}
-      <div className="flex gap-2">
-        {["301", "501", "701", "1501"].map((type) => (
-          <button
-            key={type}
-            onClick={() => setGameType(type)}
-            disabled={gameStarted}
-            className={`px-3 py-1 border rounded ${
-              gameType === type ? "bg-blue-500 text-white" : ""
-            }`}
-          >
-            {type}
-          </button>
-        ))}
+      <div>
+        <div className="mb-2">Game Mode</div>
+        <div className="flex gap-2">
+          {["301", "501", "701", "1501"].map((type) => (
+            <button
+              key={type}
+              onClick={() => setGameType(type)}
+              disabled={gameStarted}
+              className={`px-4 py-2 border rounded ${
+                gameType === type ? "bg-blue-500 text-white" : ""
+              }`}
+            >
+              {type}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* 👥 Player Buttons */}
-      <div className="flex gap-2">
-        {[1, 2, 3, 4].map((n) => (
-          <button
-            key={n}
-            disabled={gameStarted}
-            onClick={() => setNumberOfPlayers(n)}
-            className={`px-3 py-1 border rounded ${
-              numberOfPlayers === n ? "bg-blue-500 text-white" : ""
-            }`}
-          >
-            {n}P
-          </button>
-        ))}
+      <div>
+        <div className="mb-2">Number of Players (1–4)</div>
+        <div className="flex gap-2">
+          {[1, 2, 3, 4].map((n) => (
+            <button
+              key={n}
+              disabled={gameStarted}
+              onClick={() => setNumberOfPlayers(n)}
+              className={`px-4 py-2 border rounded ${
+                numberOfPlayers === n ? "bg-blue-500 text-white" : ""
+              }`}
+            >
+              {n}P
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Round limit */}
-      <input
-        type="number"
-        value={roundLimit}
-        disabled={gameStarted}
-        onChange={(e) => setRoundLimit(parseInt(e.target.value) || 1)}
-        className="border p-1"
-      />
+      {/* Round Limit Input - Fixed for Mobile */}
+      {/* Max Rounds - Mobile Friendly with + and - buttons */}
+      {/* Max Rounds - Mobile Friendly with + and - buttons */}
+      <div className="flex flex-col">
+        <div className="mb-2">Max Rounds:</div>
+
+        <div className="flex gap-3">
+          {/* Minus Button */}
+          <button
+            type="button"
+            onClick={() => setRoundLimit(Math.max(1, roundLimit - 1))}
+            disabled={gameStarted || roundLimit <= 1}
+            className="flex items-center px-4 py-2 justify-center border border-gray-300 rounded bg-white hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            −
+          </button>
+
+          {/* Number Display */}
+          <div className=" text-center">
+            <div className="flex border justify-center items-center border-gray-300 rounded px-4 py-2 bg-white">
+              {roundLimit}
+            </div>
+          </div>
+
+          {/* Plus Button */}
+          <button
+            type="button"
+            onClick={() => setRoundLimit(Math.min(50, roundLimit + 1))}
+            disabled={gameStarted || roundLimit >= 50}
+            className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded bg-white hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            +
+          </button>
+        </div>
+      </div>
 
       <button
         onClick={startGame}
@@ -300,20 +335,20 @@ export default function ZeroOneGames() {
 
               {/* Board mode */}
               {inputMode === "board" && (
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   {BOARD_NUMBERS.map((n) => (
                     <div key={n} className="border p-1 text-center">
                       <div>{n}</div>
-                      <div className="flex gap-1 justify-center">
-                        <button onClick={() => handleBoardHit(n, 1)}>S</button>
-                        <button onClick={() => handleBoardHit(n, 2)}>D</button>
-                        <button onClick={() => handleBoardHit(n, 3)}>T</button>
+                      <div className="flex gap-1 justify-between">
+                        <Button className='bg-blue-500'onClick={() => handleBoardHit(n, 1)}>S</Button>
+                        <Button className='bg-red-500'onClick={() => handleBoardHit(n, 2)}>D</Button>
+                        <Button className='bg-green-500' onClick={() => handleBoardHit(n, 3)}>T</Button>
                       </div>
                     </div>
                   ))}
-                  <button onClick={() => handleBoardHit("MISS", 0)}>
+                  <Button className='px-4 py-2 bg-gray-400' onClick={() => handleBoardHit("MISS", 0)}>
                     MISS
-                  </button>
+                  </Button>
                 </div>
               )}
             </>
