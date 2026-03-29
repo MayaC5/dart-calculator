@@ -281,29 +281,31 @@ export default function ZeroOneGames() {
             Round: {currentRound} / {roundLimit}
           </div>
 
-          {players.map((p, i) => (
-            <div key={i} className="border p-3 rounded">
-              <h3>
-                Player {i + 1}
-                {i === currentPlayer && !gameEnded && " 🎯"}
-                {p.finished && " ✅"}
-              </h3>
+          <div className="grid grid-cols-2 gap-4 ">
+            {players.map((p, i) => (
+              <div key={i} className="border p-3 rounded">
+                <h3>
+                  Player {i + 1}
+                  {i === currentPlayer && !gameEnded && " 🎯"}
+                  {p.finished && " ✅"}
+                </h3>
 
-              <div>Score: {p.score}</div>
+                <div>Score: {p.score}</div>
 
-              <div>Current: {p.currentThrows.join(" | ") || "-"}</div>
+                <div>Current: {p.currentThrows.join(" | ") || "-"}</div>
 
-              <div className="text-sm text-gray-500">
-                History:
-                {p.rounds.map((round, idx) => (
-                  <div key={idx}>
-                    {idx + 1}: {round.join(" | ")} (
-                    {round.reduce((a, b) => a + b, 0)})
-                  </div>
-                ))}
+                <div className="text-sm text-gray-500">
+                  History:
+                  {p.rounds.map((round, idx) => (
+                    <div key={idx}>
+                      {idx + 1}: {round.join(" | ")} (
+                      {round.reduce((a, b) => a + b, 0)})
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
 
           {!gameEnded && (
             <>
@@ -340,13 +342,31 @@ export default function ZeroOneGames() {
                     <div key={n} className="border py-2 px-1 text-center">
                       <div>{n}</div>
                       <div className="flex gap-1 justify-between">
-                        <Button className='bg-blue-500'onClick={() => handleBoardHit(n, 1)}>S</Button>
-                        <Button className='bg-red-500'onClick={() => handleBoardHit(n, 2)}>D</Button>
-                        <Button className='bg-green-500' onClick={() => handleBoardHit(n, 3)}>T</Button>
+                        <Button
+                          className="bg-blue-500"
+                          onClick={() => handleBoardHit(n, 1)}
+                        >
+                          S
+                        </Button>
+                        <Button
+                          className="bg-red-500"
+                          onClick={() => handleBoardHit(n, 2)}
+                        >
+                          D
+                        </Button>
+                        <Button
+                          className="bg-green-500"
+                          onClick={() => handleBoardHit(n, 3)}
+                        >
+                          T
+                        </Button>
                       </div>
                     </div>
                   ))}
-                  <Button className='px-4 py-2 bg-gray-400' onClick={() => handleBoardHit("MISS", 0)}>
+                  <Button
+                    className="px-4 py-2 bg-gray-400"
+                    onClick={() => handleBoardHit("MISS", 0)}
+                  >
                     MISS
                   </Button>
                 </div>
