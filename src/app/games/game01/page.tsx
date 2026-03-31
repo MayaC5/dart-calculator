@@ -116,7 +116,7 @@ export default function ZeroOneGames() {
 
     let nextPlayer = prevPlayerIndex;
     let nextRound = prevRound;
-    let nextGameEnded = prevGameEnded;
+    let nextGameEnded: boolean = prevGameEnded;
 
     // Finish
     if (player.score === 0) {
