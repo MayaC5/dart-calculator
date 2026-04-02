@@ -69,38 +69,50 @@ export default function CalculatorMode({ onThrow, onUndo }: Props) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="gap-2 flex flex-col">
       {/* 1. Multiplier Selection */}
       <div className="flex gap-2">
         <Button
           onClick={() => selectMultiplier("S")}
-          className={`flex-1 h-14 text-lg font-medium ${
+          className={`flex-1 h-10 text-[15px] font-medium ${
             multiplier === "S"
               ? "bg-yellow-500 text-black"
               : "bg-blue-500 hover:bg-blue-600"
           }`}
         >
-          SINGLE
+          S
         </Button>
         <Button
           onClick={() => selectMultiplier("D")}
-          className={`flex-1 h-14 text-lg font-medium ${
+          className={`flex-1 h-10 text-[15px] font-medium ${
             multiplier === "D"
               ? "bg-yellow-500 text-black"
               : "bg-red-500 hover:bg-red-600"
           }`}
         >
-          DOUBLE
+          D
         </Button>
         <Button
           onClick={() => selectMultiplier("T")}
-          className={`flex-1 h-14 text-lg font-medium ${
+          className={`flex-1 h-10 text-[15px] font-medium ${
             multiplier === "T"
               ? "bg-yellow-500 text-black"
               : "bg-green-500 hover:bg-green-600"
           }`}
         >
-          TRIPLE
+          T
+        </Button>
+        <Button
+          onClick={() => selectBull(25)}
+          className="h-10 text-[15px] font-medium bg-purple-500 hover:bg-purple-600"
+        >
+          25
+        </Button>
+        <Button
+          onClick={() => selectBull(50)}
+          className="h-10 text-[15px] font-medium bg-purple-500 hover:bg-purple-600 align-center"
+        >
+          50
         </Button>
       </div>
 
@@ -110,7 +122,7 @@ export default function CalculatorMode({ onThrow, onUndo }: Props) {
           <Button
             key={num}
             onClick={() => selectNumber(num)}
-            className={`h-16 text-2xl font-bold transition-all ${
+            className={`h-10 text-[15px] font-medium transition-all ${
               selectedNumber === num
                 ? "bg-yellow-500 text-black scale-105"
                 : "bg-gray-700 hover:bg-gray-600"
@@ -122,34 +134,33 @@ export default function CalculatorMode({ onThrow, onUndo }: Props) {
       </div>
 
       {/* 3. Bull Buttons */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* <div className="grid grid-cols-2 gap-3">
         <Button
           onClick={() => selectBull(25)}
-          className="h-16 text-xl font-medium bg-purple-500 hover:bg-purple-600"
+          className="h-10 text-[15px] font-medium bg-purple-500 hover:bg-purple-600"
         >
           BULL (25)
         </Button>
         <Button
           onClick={() => selectBull(50)}
-          className="h-16 text-xl font-medium bg-purple-500 hover:bg-purple-600"
+          className="h-10 text-[15px] font-medium bg-purple-500 hover:bg-purple-600 align-center"
         >
           BULLSEYE (50)
         </Button>
-      </div>
-
+      </div> */}
 
       {/* Clear & Undo */}
       <div className="flex gap-3">
         <Button
           onClick={handleClear}
-          className="flex-1 h-14 bg-orange-500 hover:bg-orange-600 text-lg"
+          className="flex-1 h-10 text-[15px] bg-orange-500 hover:bg-orange-600"
         >
           CLEAR
         </Button>
 
         <Button
           onClick={onUndo}
-          className="flex-1 h-14 bg-yellow-500 hover:bg-yellow-600 text-lg font-semibold"
+          className="flex-1 h-10 text-[15px] bg-yellow-500 hover:bg-yellow-600"
         >
           ↩️ UNDO
         </Button>

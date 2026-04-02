@@ -9,6 +9,8 @@ interface GameSetupProps {
   gameStarted?: boolean;
 }
 
+import { Plus, Minus } from "lucide-react";
+
 export default function GameSetup({
   gameType,
   setGameType,
@@ -21,11 +23,11 @@ export default function GameSetup({
 
 }: GameSetupProps) {
   return (
-    <div className="flex gap-2 flex-col">
+    <div className="flex gap-4 flex-col w-full">
       {/* Game Mode Selection */}
-      <div className="flex flex-col ">
-        <div className="mb-2">Game Mode</div>
-        <div className="flex gap-2">
+      <div className="flex flex-col">
+        <div className="flex text-center justify-center mb-2">Game Mode</div>
+        <div className="grid grid-cols-4 gap-4 justify-between">
           {["301", "501", "701", "1501"].map((type) => (
             <button
               key={type}
@@ -39,9 +41,9 @@ export default function GameSetup({
       </div>
 
       {/* Player Selection */}
-      <div>
-        <div className="mb-2">Players</div>
-        <div className="flex gap-2">
+      <div className="flex flex-col">
+        <div className="flex text-center justify-center mb-2">Players</div>
+        <div className="grid grid-cols-4 gap-4 justify-between">
           {[1, 2, 3, 4].map((n) => (
             <button
               key={n}
@@ -53,21 +55,21 @@ export default function GameSetup({
           ))}
         </div>
       </div>
-      <div className="flex flex-col mb-4 ">
-        <div className="mb-2 font-medium text-sm">Max Rounds:</div>
-        <div className="flex gap-3 items-center">
+      <div className="flex flex-col">
+        <div className="flex text-center justify-center mb-2">Max Rounds:</div>
+        <div className="grid grid-cols-4 gap-4 justify-between">
           {/* Minus Button */}
           <button
             type="button"
             onClick={() => setRoundLimit(Math.max(1, roundLimit - 1))}
             disabled={gameStarted || roundLimit <= 1}
-            className="flex h-10 w-12 items-center justify-center border border-gray-300 rounded bg-white hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50 transition-colors"
+            className="flex px-4 py-2 items-center justify-center border border-gray-300 rounded bg-white hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50 transition-colors"
           >
-            −
+            <Minus className="h-5 w-5" />
           </button>
 
           {/* Number Display */}
-          <div className="flex h-10 w-16 border justify-center items-center border-gray-300 rounded bg-white font-bold">
+          <div className="flex px-4 py-2 col-span-2 border justify-center items-center border-gray-300 rounded bg-white font-bold">
             {roundLimit}
           </div>
 
@@ -76,9 +78,9 @@ export default function GameSetup({
             type="button"
             onClick={() => setRoundLimit(Math.min(50, roundLimit + 1))}
             disabled={gameStarted || roundLimit >= 50}
-            className="flex h-10 w-12 items-center justify-center border border-gray-300 rounded bg-white hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50 transition-colors"
+            className="flex px-4 py-2 items-center justify-center border border-gray-300 rounded bg-white hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50 transition-colors"
           >
-            +
+            <Plus className="h-5 w-5" />
           </button>
         </div>
       </div>

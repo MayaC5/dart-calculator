@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import useDeviceSize from "@/hooks/useOrientation";
 
 const BOARD_NUMBERS = [
   "20",
@@ -32,10 +33,14 @@ type Props = {
 };
 
 export default function ButtonMode({ onBoardHit, onUndo }: Props) {
+  const [orientation, width, height] = useDeviceSize();
+    console.log(orientation==="portrait" ? "Portrait Mode" : "Landscape Mode");
+    const portrait = "grid grid-cols-3";
+    const landscape = "flex flex-wrap gap-3";
   return (
-    <div className="space-y-4">
+    <div className="">
       {/* Dartboard Numbers Grid */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className={` ${orientation === "portrait" ? portrait : landscape} gap-3`}>
         {BOARD_NUMBERS.map((n) => {
             const isBull = n === "25";
             return(
