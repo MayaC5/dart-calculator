@@ -33,13 +33,35 @@ export default function GameBoard({
   handleBoardHit,
 }: GameBoardProps) {
   const activePlayer = players[currentPlayer];
-  inputMode = localStorage.getItem("darts-input-mode") as InputModeType || "buttons";
+  inputMode =
+    (localStorage.getItem("darts-input-mode") as InputModeType) || "buttons";
   const [orientation, width, height] = useDeviceSize();
-  console.log(orientation==="portrait" ? "Portrait Mode" : "Landscape Mode");
+  console.log(orientation === "portrait" ? "Portrait Mode" : "Landscape Mode");
   const portrait = " flex-col justify-between h-full";
   const landscape = "flex-row";
 
-  
+  // Helper function to put inside GameBoard or a utils file
+  const calculateAverages = (player: PlayerState, gameType: string) => {
+    const startingScore = parseInt(gameType) || 301;
+    const pointsScored = startingScore - player.score;
+
+    // Total darts thrown across all rounds
+    const totalDarts =
+      player.rounds.flat().length + player.currentThrows.length;
+
+    if (totalDarts === 0) return { avg100: "0.00", avg80: "0.00" };
+
+    // Standard 3-dart average (100%)
+    const avg100 = (pointsScored / totalDarts) * 3;
+
+    // 80% of that average
+    const avg80 = avg100 * 0.8;
+
+    return {
+      avg100: avg100.toFixed(2),
+      avg80: avg80.toFixed(2),
+    };
+  };
 
   return (
     <div
@@ -54,9 +76,7 @@ export default function GameBoard({
             Player {currentPlayer + 1} - Round: {currentRound} /{" "}
             {roundLimit || 15}
           </span>
-          <div>
-            {finishType === "Single" ? "Single Out" : "Double Out"}
-          </div>
+          <div>{finishType === "Single" ? "Single Out" : "Double Out"}</div>
         </div>
 
         {/* 2. Main Score Display */}
@@ -145,16 +165,67 @@ export default function GameBoard({
               <CalMode onThrow={handleThrow} onUndo={handleUndo} />
             )}
             {inputMode === "directCal" && (
-              <DirectCalMode onThrow={handleThrow} onUndo={handleUndo} finishType={finishType}/>
+              <DirectCalMode
+                onThrow={handleThrow}
+                onUndo={handleUndo}
+                finishType={finishType}
+              />
             )}
           </div>
         </div>
       )}
 
       {gameEnded && (
-        <div className="bg-green-100 p-6 rounded-xl text-center border-2 border-green-500">
-          <h2 className="text-2xl font-bold text-green-700">Game Over!</h2>
-          <p className="text-green-600">Final scores have been recorded.</p>
+        <div className="bg-green-50 p-4 rounded-xl border-2 border-green-500 flex flex-col gap-4">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-green-700">Game Over!</h2>
+            <p className="text-green-600 text-sm">Final Statistics</p>
+          </div>
+
+          <div className="overflow-hidden rounded-lg border border-green-200">
+            <table className="w-full text-sm text-left bg-white">
+              <thead className="bg-green-500 text-white text-[10px] uppercase">
+                <tr>
+                  <th className="px-3 py-2">Player</th>
+                  <th className="px-3 py-2 text-center">Score</th>
+                  <th className="px-3 py-2 text-center">Avg (100%)</th>
+                  <th className="px-3 py-2 text-center">Avg (80%)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-green-100">
+                {players.map((p, i) => {
+                  const stats = calculateAverages(p, "501"); // Replace "501" with dynamic gameType if available
+                  return (
+                    <tr
+                      key={i}
+                      className={i === currentPlayer ? "bg-yellow-50" : ""}
+                    >
+                      <td className="px-3 py-2 font-bold">
+                        P{i + 1}
+                        {p.finished && " 🏆"}
+                      </td>
+                      <td className="px-3 py-2 text-center font-mono">
+                        {p.score}
+                      </td>
+                      <td className="px-3 py-2 text-center font-bold text-blue-600">
+                        {stats.avg100}
+                      </td>
+                      <td className="px-3 py-2 text-center text-gray-500">
+                        {stats.avg80}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <button
+            onClick={() => window.location.reload()} // Or your reset logic
+            className="w-full py-2 bg-green-600 text-white rounded-lg font-bold text-sm hover:bg-green-700"
+          >
+            New Game
+          </button>
         </div>
       )}
     </div>
