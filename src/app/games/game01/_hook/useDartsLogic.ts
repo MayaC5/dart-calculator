@@ -2,28 +2,19 @@ import { useState } from "react";
 import { PlayerState, HistoryEntry } from "../../../../_types/dart";
 
 export function useDartsLogic() {
-  // --- Setup States ---
   const [numberOfPlayers, setNumberOfPlayers] = useState<number>(1);
   const [gameType, setGameType] = useState<string>("301");
   const [roundLimit, setRoundLimit] = useState<number>(15);
+  const [finishType, setFinishType] = useState<"Single" | "Double">("Single"); // Added state
 
-  // --- Active Game States ---
   const [players, setPlayers] = useState<PlayerState[]>([]);
   const [currentPlayer, setCurrentPlayer] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
   const [gameEnded, setGameEnded] = useState(false);
   const [currentRound, setCurrentRound] = useState(1);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [lockedInputMode, setLockedInputMode] = useState<string>("buttons");
 
-  // ... Paste your startGame, handleThrow, handleUndo, and getNextPlayer functions here ...
-  // 🎯 Start Game
   const startGame = () => {
-
-    const savedSetting = localStorage.getItem("darts-input-mode") || "buttons";
-    setLockedInputMode(savedSetting);
-
-
     const start = parseInt(gameType);
     const initialPlayers: PlayerState[] = Array.from(
       { length: numberOfPlayers },
@@ -43,7 +34,7 @@ export function useDartsLogic() {
     setCurrentRound(1);
     setGameStarted(true);
     setGameEnded(false);
-    setHistory([]); // clear history
+    setHistory([]);
   };
 
   const getNextPlayer = (players: PlayerState[], current: number): number => {
@@ -55,8 +46,8 @@ export function useDartsLogic() {
     return current;
   };
 
-  // 🎯 Handle throw
-  const handleThrow = (points: number) => {
+  // 🎯 Updated handleThrow with Multiplier logic
+  const handleThrow = (points: number, multiplier: number = 1) => {
     if (!gameStarted || gameEnded) return;
 
     const prevPlayers = JSON.parse(JSON.stringify(players));
@@ -70,46 +61,66 @@ export function useDartsLogic() {
     if (player.finished) return;
 
     player.throws += 1;
-    player.score -= points;
+    const potentialScore = player.score - points;
     player.currentThrows = [...player.currentThrows, points];
 
-    let nextPlayer = prevPlayerIndex;
-    let nextRound = prevRound;
-    let nextGameEnded: boolean = prevGameEnded;
+    let isBust = false;
+    let isWin = false;
 
-    // Finish
-    if (player.score === 0) {
+    // --- CHECK WIN/BUST LOGIC ---
+    if (finishType === "Double") {
+      if (potentialScore === 0 && multiplier === 2) {
+        isWin = true;
+      } else if (potentialScore <= 1) {
+        // In Double Out, hitting 1 or going below 0 or hitting 0 without a double is a bust
+        isBust = true;
+      }
+    } else {
+      // Single Out Logic
+      if (potentialScore === 0) isWin = true;
+      else if (potentialScore < 0) isBust = true;
+    }
+
+    // --- APPLY RESULTS ---
+    if (isWin) {
+      player.score = 0;
       player.finished = true;
-      player.rounds = [...player.rounds, player.currentThrows];
-      player.currentThrows = [];
-      player.throws = 0;
-      player.hasPlayedThisRound = true;
-      nextPlayer = getNextPlayer(updated, prevPlayerIndex);
+      finalizeTurn(player);
+    } else if (isBust) {
+      player.score = player.roundStartScore; // Reset to start of round
+      finalizeTurn(player);
+    } else {
+      player.score = potentialScore;
+      if (player.throws === 3) {
+        player.roundStartScore = player.score; // Update base score for next round
+        finalizeTurn(player);
+      }
     }
-    // Bust
-    else if (player.score < 0) {
-      player.score = player.roundStartScore;
-      player.rounds = [...player.rounds, player.currentThrows];
-      player.currentThrows = [];
-      player.throws = 0;
-      player.hasPlayedThisRound = true;
-      nextPlayer = getNextPlayer(updated, prevPlayerIndex);
-    }
-    // Normal 3 throws
-    else if (player.throws === 3) {
-      player.rounds = [...player.rounds, player.currentThrows];
-      player.currentThrows = [];
-      player.throws = 0;
-      player.roundStartScore = player.score;
-      player.hasPlayedThisRound = true;
-      nextPlayer = getNextPlayer(updated, prevPlayerIndex);
+
+    function finalizeTurn(p: any) {
+      p.rounds = [...p.rounds, p.currentThrows];
+      p.currentThrows = [];
+      p.throws = 0;
+      p.hasPlayedThisRound = true;
     }
 
     updated[prevPlayerIndex] = player;
 
+    // --- NAVIGATION LOGIC ---
+    let nextPlayer = prevPlayerIndex;
+    let nextRound = prevRound;
+    let nextGameEnded: boolean = prevGameEnded;
+
+    // If turn finished (win, bust, or 3 throws), move to next player
+    if (player.hasPlayedThisRound || player.finished) {
+      nextPlayer = getNextPlayer(updated, prevPlayerIndex);
+    }
+
     // Check if round is complete
-    const allPlayed = updated.every((p) => p.finished || p.hasPlayedThisRound);
-    if (allPlayed) {
+    const allPlayedOrFinished = updated.every(
+      (p) => p.finished || p.hasPlayedThisRound,
+    );
+    if (allPlayedOrFinished) {
       updated.forEach((p) => (p.hasPlayedThisRound = false));
       if (prevRound >= roundLimit) {
         nextGameEnded = true;
@@ -122,7 +133,7 @@ export function useDartsLogic() {
       nextGameEnded = true;
     }
 
-    // Save current state to history BEFORE applying new state
+    // --- SAVE HISTORY & STATE ---
     setHistory((h) => [
       ...h,
       {
@@ -133,25 +144,29 @@ export function useDartsLogic() {
       },
     ]);
 
-    // Apply new state
     setPlayers(updated);
     setCurrentPlayer(nextPlayer);
     setCurrentRound(nextRound);
     setGameEnded(nextGameEnded);
   };
 
-  // ↩️ Improved Undo - Can undo full rounds
+  const handleBoardHit = (value: string, multiplierStr: "S" | "D" | "T") => {
+    if (value === "MISS") return handleThrow(0, 1);
+
+    const multiplierMap = { S: 1, D: 2, T: 3 };
+    const m = multiplierMap[multiplierStr];
+    const base = parseInt(value);
+
+    handleThrow(base * m, m);
+  };
+
   const handleUndo = () => {
     if (history.length === 0) return;
-
     const lastState = history[history.length - 1];
-
     setPlayers(lastState.players);
     setCurrentPlayer(lastState.currentPlayer);
     setCurrentRound(lastState.currentRound);
     setGameEnded(lastState.gameEnded);
-
-    // Remove the last history entry
     setHistory((h) => h.slice(0, -1));
   };
 
@@ -160,18 +175,15 @@ export function useDartsLogic() {
     setPlayers([]);
   };
 
-  const handleBoardHit = (value: string, multiplier: number) => {
-    if (value === "MISS") return handleThrow(0);
-    const base = parseInt(value);
-    handleThrow(base * multiplier);
-  };
-
   return {
     numberOfPlayers,
     setNumberOfPlayers,
     roundLimit,
     setRoundLimit,
     gameType,
+    setGameType,
+    finishType,
+    setFinishType,
     players,
     currentPlayer,
     gameStarted,
@@ -182,6 +194,5 @@ export function useDartsLogic() {
     handleUndo,
     clearGame,
     handleBoardHit,
-    setGameType,
   };
 }

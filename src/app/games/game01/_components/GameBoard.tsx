@@ -14,7 +14,8 @@ interface GameBoardProps {
   roundLimit: number;
   gameEnded: boolean;
   inputMode: InputModeType;
-  handleThrow: (points: number) => void;
+  finishType: "Single" | "Double";
+  handleThrow: (points: number, multiplier?: number) => void;
   handleUndo: () => void;
   handleBoardHit: (value: string, multiplier: number) => void;
 }
@@ -26,6 +27,7 @@ export default function GameBoard({
   roundLimit,
   gameEnded,
   inputMode,
+  finishType,
   handleThrow,
   handleUndo,
   handleBoardHit,
@@ -52,6 +54,9 @@ export default function GameBoard({
             Player {currentPlayer + 1} - Round: {currentRound} /{" "}
             {roundLimit || 15}
           </span>
+          <div>
+            {finishType === "Single" ? "Single Out" : "Double Out"}
+          </div>
         </div>
 
         {/* 2. Main Score Display */}
@@ -140,7 +145,7 @@ export default function GameBoard({
               <CalMode onThrow={handleThrow} onUndo={handleUndo} />
             )}
             {inputMode === "directCal" && (
-              <DirectCalMode onThrow={handleThrow} onUndo={handleUndo} />
+              <DirectCalMode onThrow={handleThrow} onUndo={handleUndo} finishType={finishType}/>
             )}
           </div>
         </div>

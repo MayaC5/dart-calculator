@@ -1,3 +1,7 @@
+"use client";
+
+import { Plus, Minus } from "lucide-react"; // or "lucide-react" depending on your setup
+
 interface GameSetupProps {
   gameType: string;
   setGameType: (val: string) => void;
@@ -5,11 +9,11 @@ interface GameSetupProps {
   setNumberOfPlayers: (val: number) => void;
   roundLimit: number;
   setRoundLimit: (val: number) => void;
+  finishType: "Single" | "Double";
+  setFinishType: (val: "Single" | "Double") => void;
   onStart: () => void;
   gameStarted?: boolean;
 }
-
-import { Plus, Minus } from "lucide-react";
 
 export default function GameSetup({
   gameType,
@@ -18,13 +22,14 @@ export default function GameSetup({
   setNumberOfPlayers,
   roundLimit,
   setRoundLimit,
+  finishType,
+  setFinishType,
   onStart,
   gameStarted,
-
 }: GameSetupProps) {
   return (
     <div className="flex gap-4 flex-col w-full">
-      {/* Game Mode Selection */}
+      {/* 1. Game Mode Selection */}
       <div className="flex flex-col">
         <div className="flex text-center justify-center mb-2">Game Mode</div>
         <div className="grid grid-cols-4 gap-4 justify-between">
@@ -40,7 +45,26 @@ export default function GameSetup({
         </div>
       </div>
 
-      {/* Player Selection */}
+      {/* 2. Finish Rule Selection (New logic, Original CSS) */}
+      <div className="flex flex-col">
+        <div className="flex text-center justify-center mb-2">Finish Rule</div>
+        <div className="grid grid-cols-2 gap-4 justify-between">
+          <button
+            onClick={() => setFinishType("Single")}
+            className={`px-4 py-2 border rounded ${finishType === "Single" ? "bg-blue-500 text-white" : ""}`}
+          >
+            Single Out
+          </button>
+          <button
+            onClick={() => setFinishType("Double")}
+            className={`px-4 py-2 border rounded ${finishType === "Double" ? "bg-blue-500 text-white" : ""}`}
+          >
+            Double Out
+          </button>
+        </div>
+      </div>
+
+      {/* 3. Player Selection */}
       <div className="flex flex-col">
         <div className="flex text-center justify-center mb-2">Players</div>
         <div className="grid grid-cols-4 gap-4 justify-between">
@@ -55,10 +79,11 @@ export default function GameSetup({
           ))}
         </div>
       </div>
+
+      {/* 4. Max Rounds */}
       <div className="flex flex-col">
         <div className="flex text-center justify-center mb-2">Max Rounds:</div>
         <div className="grid grid-cols-4 gap-4 justify-between">
-          {/* Minus Button */}
           <button
             type="button"
             onClick={() => setRoundLimit(Math.max(1, roundLimit - 1))}
@@ -68,12 +93,10 @@ export default function GameSetup({
             <Minus className="h-5 w-5" />
           </button>
 
-          {/* Number Display */}
           <div className="flex px-4 py-2 col-span-2 border justify-center items-center border-gray-300 rounded bg-white font-bold">
             {roundLimit}
           </div>
 
-          {/* Plus Button */}
           <button
             type="button"
             onClick={() => setRoundLimit(Math.min(50, roundLimit + 1))}
@@ -85,6 +108,7 @@ export default function GameSetup({
         </div>
       </div>
 
+      {/* Start Button */}
       <button
         onClick={onStart}
         className="bg-green-600 text-white px-4 py-2 rounded"

@@ -53,6 +53,7 @@ export default function ZeroOneGames() {
             {...logic}
             inputMode={inputMode}
             handleBoardHit={logic.handleBoardHit}
+            finishType={logic.finishType}
           />
           <div className="mt-4 pt-2 border-t">
             <button onClick={logic.clearGame} className="...">
