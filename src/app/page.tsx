@@ -44,6 +44,12 @@ export default function Home() {
             <div>Modify Game Settings</div>
           </Link>
         </div>
+        <div className="flex flex-col gap-2 bg-amber-400 p-4 rounded text-center">
+          {/* <Link className="text-center" href="/setting"> */}
+          <div>Account Login</div>
+          <div>Coming Soon</div>
+          {/* </Link> */}
+        </div>
       </div>
     </div>
   );

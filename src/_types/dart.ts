@@ -1,11 +1,14 @@
 export type PlayerState = {
+  id: string;
   score: number;
-  roundStartScore: number;
+  // Use a Record where the key is the dartboard number as a string
+  cricketMarks: Record<string, number>;
+  rounds: number[][];
+  currentThrows: number[];
   throws: number;
+  roundStartScore: number;
   finished: boolean;
   hasPlayedThisRound: boolean;
-  currentThrows: number[];
-  rounds: number[][];
 };
 
 export type HistoryEntry = {

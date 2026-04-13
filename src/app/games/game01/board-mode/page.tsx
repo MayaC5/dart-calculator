@@ -22,9 +22,14 @@ export default function ZeroOneGames() {
   const [currentPlayer, setCurrentPlayer] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
   const [gameEnded, setGameEnded] = useState(false);
+  let start = 0;
 
   const startGame = () => {
-    const start = parseInt(gameType);
+    if (gameType !== "Cricket" && gameType !== "Count-up") {
+      start = parseInt(gameType);
+    }else {
+      start = 0;
+      }
 
     const initial = Array.from({ length: numberOfPlayers }, () => ({
       score: start,

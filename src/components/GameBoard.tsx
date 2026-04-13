@@ -1,13 +1,14 @@
 "use client";
 
-import { InputModeType, PlayerState } from "../../../../_types/dart";
-import InputMode from "./inputMode";
-import ButtonMode from "./buttonMode";
-import CalMode from "./calMode";
-import DirectCalMode from "./directCalMode";
+import { InputModeType, PlayerState } from "../_types/dart";
+import InputMode from "./gamemode/inputMode";
+import ButtonMode from "./gamemode/buttonMode";
+import CalMode from "./gamemode/calMode";
+import DirectCalMode from "./gamemode/directCalMode";
 import useDeviceSize from "@/hooks/useOrientation";
 
 interface GameBoardProps {
+  gameType: string;
   players: PlayerState[];
   currentPlayer: number;
   currentRound: number;
@@ -28,6 +29,7 @@ export default function GameBoard({
   gameEnded,
   inputMode,
   finishType,
+  gameType,
   handleThrow,
   handleUndo,
   handleBoardHit,
@@ -37,24 +39,46 @@ export default function GameBoard({
     (localStorage.getItem("darts-input-mode") as InputModeType) || "buttons";
   const [orientation, width, height] = useDeviceSize();
   console.log(orientation === "portrait" ? "Portrait Mode" : "Landscape Mode");
-  const portrait = " flex-col justify-between h-full";
-  const landscape = "flex-row";
+
+  console.log("GameType", gameType);
 
   // Helper function to put inside GameBoard or a utils file
   const calculateAverages = (player: PlayerState, gameType: string) => {
-    const startingScore = parseInt(gameType) || 301;
-    const pointsScored = startingScore - player.score;
+    //1. Calculate points socred based on mode
+    let pointScored = 0;
+    if (gameType === "CountUp") {
+      pointScored = player.score;
+    } else {
+      const startingScore = parseInt(gameType) || 301;
+      pointScored = startingScore - player.score;
+    }
 
-    // Total darts thrown across all rounds
-    const totalDarts =
-      player.rounds.flat().length + player.currentThrows.length;
+    console.log("pointScored", pointScored);
 
-    if (totalDarts === 0) return { avg100: "0.00", avg80: "0.00" };
+    //2. Calculate Rounds Played
+    const completedRounds = player.rounds.length;
+    const currentRoundDarts = player.currentThrows.length;
 
-    // Standard 3-dart average (100%)
-    const avg100 = (pointsScored / totalDarts) * 3;
+    // If no darts have been thrown at all, avoid division by zero
+    if (completedRounds === 0 && currentRoundDarts === 0) {
+      return { avg100: "0.00", avg80: "0.00" };
+    }
 
-    // 80% of that average
+    /**
+     * Option A: PPD Style (Points Per Dart * 3)
+     * This is the standard professional way. It accounts for the exact
+     * number of darts thrown.
+     */
+    const totalDarts = completedRounds * 3 + currentRoundDarts;
+    const avg100 = (pointScored / totalDarts) * 3;
+
+    /**
+     * Option B: True Round Average
+     * If you strictly want to divide by the number of "visits" to the board:
+     * const totalVisits = currentRoundDarts > 0 ? completedRounds + 1 : completedRounds;
+     * const avg100 = pointsScored / totalVisits;
+     */
+
     const avg80 = avg100 * 0.8;
 
     return {
@@ -62,74 +86,79 @@ export default function GameBoard({
       avg80: avg80.toFixed(2),
     };
   };
-
+  // className={`flex ${orientation === "portrait" ? "flex-col justify-between h-full p-4" : "flex-row h-full w-full"}`}
   return (
     <div
-      className={`flex ${orientation === "portrait" ? portrait : landscape}`}
+      className="flex h-full
+      portrait:flex-col justify-between  p-4 
+      landscape:flex-row w-full"
     >
       <div
-        className={`flex flex-col ${orientation === "portrait" ? "w-full h-[50%] justify-between" : "w-[50%] justify-between mr-2"} `}
+        className={`flex flex-col ${orientation === "portrait" ? "w-full h-[50%] justify-between " : "w-[60%] justify-between mr-2 p-2"} `}
       >
         {/* 1. Header Info */}
-        <div className="flex justify-between items-center text-sm font-medium border-b pb-2">
+        <div className="flex justify-between items-center text-sm font-medium border-b pb-2 ">
           <span>
             Player {currentPlayer + 1} - Round: {currentRound} /{" "}
             {roundLimit || 15}
           </span>
           <div>{finishType === "Single" ? "Single Out" : "Double Out"}</div>
         </div>
-
-        {/* 2. Main Score Display */}
-        <div className="grid grid-cols-3  gap-4">
-          {/* Left: Last 5 Rounds History */}
-          <div className="justify-around space-y-2.5 text-[10px] text-gray-500">
-            <div className="font-bold border-b mb-1 uppercase">History</div>
-            {activePlayer.rounds.length === 0 ? (
-              <div className="italic">No throws</div>
-            ) : (
-              activePlayer.rounds.slice(-5).map((round, idx) => (
-                <div key={idx} className="flex justify-between">
-                  <span>R{activePlayer.rounds.length - 4 + idx}</span>
-                  <span className="font-mono">{round.join(", ")}</span>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* Center: Big Score */}
-          <div className="text-center items-center justify-center flex flex-col">
-            <div className="text-5xl font-black tracking-tighter">
-              {activePlayer.score}
-            </div>
-            <div className="text-[10px] uppercase text-gray-400 font-bold">
-              Remaining
-            </div>
-          </div>
-
-          {/* Right: Current Turn Throws */}
-          <div className="text-right space-y-1">
-            <div className="text-[10px] font-bold text-gray-500 uppercase border-b mb-1">
-              Current
-            </div>
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="text-sm font-bold">
-                T{i + 1}:{" "}
-                <span
-                  className={
-                    activePlayer.currentThrows[i] !== undefined
-                      ? "text-black"
-                      : "text-gray-300"
-                  }
-                >
-                  {activePlayer.currentThrows[i] ?? "-"}
-                </span>
+        <div className={`h-[70%]`}>
+          {/* 2. Main Score Display */}
+          <div className="grid grid-cols-3  gap-4 h-full">
+            {/* Left: Last 5 Rounds History */}
+            <div className="justify-around space-y-2.5 text-[10px] text-gray-500">
+              <div className="font-bold border-b mb-1 mt-2 uppercase">
+                History
               </div>
-            ))}
+              {activePlayer.rounds.length === 0 ? (
+                <div className="italic">No throws</div>
+              ) : (
+                activePlayer.rounds.slice(-5).map((round, idx) => (
+                  <div key={idx} className="flex justify-between">
+                    <span>R{activePlayer.rounds.length - idx}</span>
+                    <span className="font-mono">{round.join(", ")}</span>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Center: Big Score */}
+            <div className="text-center items-center justify-center flex flex-col">
+              <div className="text-7xl font-black tracking-tighter">
+                {activePlayer.score}
+              </div>
+              <div className="text-[10px] uppercase text-gray-400 font-bold">
+                Remaining
+              </div>
+            </div>
+
+            {/* Right: Current Turn Throws */}
+            <div className="text-right space-y-1">
+              <div className="text-[10px] font-bold text-gray-500 uppercase border-b mb-1 mt-2">
+                Current
+              </div>
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="text-sm font-bold">
+                  T{i + 1}:{" "}
+                  <span
+                    className={
+                      activePlayer.currentThrows[i] !== undefined
+                        ? "text-black"
+                        : "text-gray-300"
+                    }
+                  >
+                    {activePlayer.currentThrows[i] ?? "-"}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* 3. Multi-Player Mini Grid */}
-        <div className={`grid grid-cols-${players.length} gap-2`}>
+        <div className={`grid grid-cols-${players.length} gap-2 h-[20%]`}>
           {players.map((p, i) => (
             <div
               key={i}
@@ -139,11 +168,11 @@ export default function GameBoard({
                   : "bg-gray-50 border-transparent opacity-60"
               }`}
             >
-              <div className="text-[10px] font-bold">
+              <div className="text-[18px] font-bold">
                 P{i + 1}
                 {p.finished && " ✅"}
               </div>
-              <div className="text-sm font-black">{p.score}</div>
+              <div className="text-[24px] font-black">{p.score}</div>
             </div>
           ))}
         </div>
@@ -151,7 +180,7 @@ export default function GameBoard({
 
       {!gameEnded && (
         <div
-          className={` ${orientation === "portrait" ? "w-full mt-6" : "w-[50%]"} `}
+          className={` ${orientation === "portrait" ? "w-full mt-6" : "w-[40%] "} `}
         >
           {/* 5. Dynamic Input Component */}
           <div>
@@ -194,7 +223,7 @@ export default function GameBoard({
               </thead>
               <tbody className="divide-y divide-green-100">
                 {players.map((p, i) => {
-                  const stats = calculateAverages(p, "501"); // Replace "501" with dynamic gameType if available
+                  const stats = calculateAverages(p, gameType); // Replace "501" with dynamic gameType if available
                   return (
                     <tr
                       key={i}
