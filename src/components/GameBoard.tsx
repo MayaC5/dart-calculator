@@ -44,46 +44,40 @@ export default function GameBoard({
 
   // Helper function to put inside GameBoard or a utils file
   const calculateAverages = (player: PlayerState, gameType: string) => {
-    //1. Calculate points socred based on mode
     let pointScored = 0;
+    const startingScore = parseInt(gameType) || 301;
+
     if (gameType === "CountUp") {
       pointScored = player.score;
     } else {
-      const startingScore = parseInt(gameType) || 301;
       pointScored = startingScore - player.score;
     }
 
-    console.log("pointScored", pointScored);
+    // 1. Count darts from fully completed previous rounds
+    let totalDarts = 0;
 
-    //2. Calculate Rounds Played
-    const completedRounds = player.rounds.length;
-    const currentRoundDarts = player.currentThrows.length;
+    // 2. Iterate through rounds to count actual darts thrown
+    player.rounds.forEach((round, index) => {
+      // If it's the very last round and the player is the winner,
+      // we need to be careful. However, most logic pushes
+      // [20, 0, 0] if they won on the first dart.
 
-    // If no darts have been thrown at all, avoid division by zero
-    if (completedRounds === 0 && currentRoundDarts === 0) {
-      return { avg100: "0.00", avg80: "0.00" };
-    }
+      // Better way: Count only non-null/actual throws if your logic supports it.
+      // Standard way:
+      totalDarts += round.length;
+    });
 
-    /**
-     * Option A: PPD Style (Points Per Dart * 3)
-     * This is the standard professional way. It accounts for the exact
-     * number of darts thrown.
-     */
-    const totalDarts = completedRounds * 3 + currentRoundDarts;
+    // 3. Add any darts currently in the hand (if game ended mid-turn)
+    totalDarts += player.currentThrows.length;
+
+    if (totalDarts === 0) return { avg100: "0.00" };
+
+    // 3-Dart Average formula: (Total Points / Total Darts) * 3
     const avg100 = (pointScored / totalDarts) * 3;
-
-    /**
-     * Option B: True Round Average
-     * If you strictly want to divide by the number of "visits" to the board:
-     * const totalVisits = currentRoundDarts > 0 ? completedRounds + 1 : completedRounds;
-     * const avg100 = pointsScored / totalVisits;
-     */
-
-    const avg80 = avg100 * 0.8;
 
     return {
       avg100: avg100.toFixed(2),
-      avg80: avg80.toFixed(2),
+      avg80: (avg100 * 0.8).toFixed(2),
     };
   };
   // className={`flex ${orientation === "portrait" ? "flex-col justify-between h-full p-4" : "flex-row h-full w-full"}`}
@@ -115,7 +109,7 @@ export default function GameBoard({
               {activePlayer.rounds.length === 0 ? (
                 <div className="italic">No throws</div>
               ) : (
-                activePlayer.rounds.slice(-5).map((round, idx) => (
+                activePlayer.rounds.slice(-5).reverse().map((round, idx) => (
                   <div key={idx} className="flex justify-between">
                     <span>R{activePlayer.rounds.length - idx}</span>
                     <span className="font-mono">{round.join(", ")}</span>
